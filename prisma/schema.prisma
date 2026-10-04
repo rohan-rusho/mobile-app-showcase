@@ -1,0 +1,102 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id                  Int               @id @default(autoincrement())
+  serialNumber        String            @map("serial_number")
+  appName             String            @map("app_name")
+  title               String
+  shortDescription    String?           @map("short_description")
+  detailedDescription String?           @map("detailed_description")
+  status              String            @default("Draft")
+  startedDate         String?           @map("started_date")
+  completedDate       String?           @map("completed_date")
+  result              String?
+  sortOrder           Int               @default(0) @map("sort_order")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  projectCategories   ProjectCategory[]
+  changes             Change[]
+  features            Feature[]
+  images              Image[]
+  technicalDetails    TechnicalDetail[]
+
+  @@map("projects")
+}
+
+model Category {
+  id                Int               @id @default(autoincrement())
+  name              String            @unique
+  projectCategories ProjectCategory[]
+
+  @@map("categories")
+}
+
+model ProjectCategory {
+  projectId  Int      @map("project_id")
+  categoryId Int      @map("category_id")
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, categoryId])
+  @@map("project_categories")
+}
+
+model Change {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @map("project_id")
+  title       String
+  description String?
+  category    String?
+  priority    String?  @default("Medium")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("changes")
+}
+
+model Feature {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @map("project_id")
+  title       String
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("features")
+}
+
+model Image {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @map("project_id")
+  filePath    String   @map("file_path")
+  thumbPath   String?  @map("thumb_path")
+  imageType   String   @default("NEW_UI") @map("image_type")
+  caption     String?
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("images")
+}
+
+model TechnicalDetail {
+  id        Int     @id @default(autoincrement())
+  projectId Int     @map("project_id")
+  key       String
+  value     String
+  sortOrder Int     @default(0) @map("sort_order")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("technical_details")
+}
